@@ -26,15 +26,27 @@ export default function QRScannerScreen({navigation}:any) {
     setFacing (current => (current === 'back' ? 'front' : 'back'))
   }
 
-  const handleBarCodeScanned = (scanData: { data: string }) => {
+  const handleBarCodeScanned = (scanData: { data: string; bounds: { origin: { x: number; y: number}; size: { width: number; height: number }}} ) => {
 
     if (hasScanned) return;
 
+    const scanFrameX = (width - scanFrameSize) / 2;
+    const scanFrameY = (height - scanFrameSize) / 2;
 
-    console.log("Escaneando código:", scanData.data);
+    const qrX = scanData.bounds.origin.x;
+    const qrY = scanData.bounds.origin.y;
+    const qrWidth = scanData.bounds.size.width;
+    const qrHeight = scanData.bounds.size.height;
 
-    setHasScanned(true); 
-    navigation.replace('AudioPlayer', { songUrl: scanData.data})
+    if(qrX >= scanFrameX && 
+       qrY >= scanFrameY && 
+       qrX + qrWidth <= scanFrameX + scanFrameSize && 
+       qrY + qrHeight <= scanFrameY + scanFrameSize)
+      {
+        console.log("Escaneando código:", scanData.data);
+        setHasScanned(true); 
+        navigation.replace('AudioPlayer', { songUrl: scanData.data})
+      }
   };
 
 
@@ -43,7 +55,7 @@ export default function QRScannerScreen({navigation}:any) {
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing={facing}
-        onBarcodeScanned={(scanData: { data: string }) => {
+        onBarcodeScanned={(scanData) => {
           handleBarCodeScanned(scanData); // Aquí pasas solo el string al método
         }}
       />
@@ -96,7 +108,7 @@ const styles = StyleSheet.create({
   },
   sideLayer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Negro semitransparente
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   scanFrameContainer: {
     width: scanFrameSize,
@@ -114,6 +126,6 @@ const styles = StyleSheet.create({
   bottomLayer: {
     height: (height - scanFrameSize) / 2,
     width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Negro semitransparente
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
 });
